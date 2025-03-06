@@ -1,16 +1,19 @@
 # Sportka Number Generator
 
-This Python script generates up to **8 sets of 6 numbers** to use across **multiple Sportka tickets** while also selecting the **most suitable dodatkové číslo** based on historical winning numbers. The script allows you to:
-- **Control how far back in history** the analysis goes.
-- **Choose how many tickets to generate** (from 1 to 8).
-- **Optimize number selection** using statistical patterns.
+This Python script generates **multiple unique Sportka tickets** while optimizing number selection using **historical data analysis**. The script ensures:numbers. The script allows you to:
+- **A mix of even/odd and high/low numbers** for better balance.
+- **Avoiding consecutive numbers** for a more spread-out selection.
+- **Including 1-2 past winners** from the most recent draw.
+- **A selectable number of tickets (1-8)**.
+- **The most frequently drawn dodatkové číslo**.
 
 ## 🎯 Features
 - 📊 **Hot & Cold Number Analysis** – Picks numbers based on their historical frequency.
-- 🔀 **Balanced Selection** – Ensures a mix of hot, cold, and randomly chosen numbers.
+- 🔄 **Even/Odd & High/Low Balance** – Ensures an optimal number mix.
+- 🚫 **Avoids Consecutive Numbers** – Ensures better spread.
+- ♻ **Includes Past Winners** – Adds 1-2 numbers from the last draw.
 - 🔢 **Dodatkové Číslo Prediction** – Finds the most frequently drawn dodatkové číslo.
-- 🕰️ **Adjustable History Depth** – Lets you decide how many past draws to analyze.
-- 🎟️ **Custom Number of Tickets** – Allows selecting between **1 to 8 tickets**.
+- 🎟️ **Custom Number of Tickets** – Choose between **1 to 8 tickets**.
 
 ## 🛠️ Installation
 Ensure you have Python installed (version 3.x recommended) and install the required libraries:

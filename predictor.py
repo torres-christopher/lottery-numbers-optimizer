@@ -1,3 +1,4 @@
+# Dependencies
 import pandas as pd
 from collections import Counter
 import random
@@ -13,8 +14,8 @@ columns = [
 df = pd.read_csv("sportka.csv", delimiter=";", names=columns, skiprows=1)
 
 # Let user define how far back in history to go
-HISTORY_DEPTH = 0  # Adjust to limit how many past draws to analyze (0 = full history)
-NUM_TICKETS = 1  # Choose how many tickets to generate (1 to 8)
+HISTORY_DEPTH = 100  # Adjust to limit how many past draws to analyze (0 = full history)
+NUM_TICKETS = 8  # Choose how many tickets to generate (1 to 8)
 
 # Ensure NUM_TICKETS is within the valid range
 NUM_TICKETS = max(1, min(NUM_TICKETS, 8))
@@ -32,23 +33,8 @@ number_counts = Counter(all_numbers)
 hot_numbers = [num for num, count in number_counts.most_common(12)]  # Top 12 frequent numbers
 cold_numbers = [num for num, count in number_counts.most_common()[-12:]]  # Bottom 12 least frequent numbers
 
-# Function to generate a unique Sportka number set for each ticket
-def generate_lottery_numbers():
-    selected_numbers = set()
-    
-    # Pick 2-3 hot numbers
-    selected_numbers.update(random.sample(hot_numbers, k=random.choice([2, 3])))
-    
-    # Pick 1-2 cold numbers
-    selected_numbers.update(random.sample(cold_numbers, k=random.choice([1, 2])))
-    
-    # Fill remaining numbers ensuring balance
-    while len(selected_numbers) < 6:
-        num = random.randint(1, 49)
-        if num not in selected_numbers:
-            selected_numbers.add(num)
-    
-    return sorted(selected_numbers)
+# Get the most recent draw numbers (to reuse 1-2 past winners)
+last_draw = df.iloc[0, 4:10].tolist() if not df.empty else []
 
 # Extract all dodatkové numbers from the filtered dataset
 all_dodatkove = df["dodatkove_1"].tolist() + df["dodatkove_2"].tolist()
@@ -56,6 +42,43 @@ all_dodatkove = df["dodatkove_1"].tolist() + df["dodatkove_2"].tolist()
 # Find the most frequently occurring dodatkové číslo
 dodatkove_counts = Counter(all_dodatkove)
 best_dodatkove = dodatkove_counts.most_common(1)[0][0]  # Select most frequent dodatkové
+
+# Function to generate a unique Sportka number set for each ticket
+def generate_lottery_numbers():
+    selected_numbers = set()
+    
+    # Pick 1-2 numbers from the last draw
+    if last_draw:
+        selected_numbers.update(random.sample(last_draw, k=random.choice([1, 2])))
+    
+    # Pick 2-3 hot numbers
+    selected_numbers.update(random.sample(hot_numbers, k=random.choice([2, 3])))
+
+    # Pick 1-2 cold numbers
+    selected_numbers.update(random.sample(cold_numbers, k=random.choice([1, 2])))
+
+    # Fill remaining numbers ensuring balance
+    while len(selected_numbers) < 6:
+        num = random.randint(1, 49)
+        if (
+            num not in selected_numbers and  # Avoid duplicates
+            all(abs(num - x) > 1 for x in selected_numbers)  # Avoid consecutive numbers
+        ):
+            selected_numbers.add(num)
+    
+    # Ensure Even/Odd balance
+    even_numbers = [n for n in selected_numbers if n % 2 == 0]
+    odd_numbers = [n for n in selected_numbers if n % 2 != 0]
+    if len(even_numbers) > 3:  # Too many evens, swap one for odd
+        to_remove = random.choice(even_numbers)
+        selected_numbers.remove(to_remove)
+        selected_numbers.add(random.choice([x for x in range(1, 50, 2) if x not in selected_numbers]))
+    elif len(odd_numbers) > 3:  # Too many odds, swap one for even
+        to_remove = random.choice(odd_numbers)
+        selected_numbers.remove(to_remove)
+        selected_numbers.add(random.choice([x for x in range(2, 50, 2) if x not in selected_numbers]))
+    
+    return sorted(selected_numbers)
 
 # Generate multiple unique tickets
 tickets = [generate_lottery_numbers() for _ in range(NUM_TICKETS)]
