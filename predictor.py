@@ -2,17 +2,23 @@ import pandas as pd
 from collections import Counter
 import random
 
-# Define column names based on your dataset structure
+# Define column names
 columns = [
     "datum", "rok", "tyden", "den", 
     "1_tah_1", "2_tah_1", "3_tah_1", "4_tah_1", "5_tah_1", "6_tah_1", "dodatkove_1",
     "1_tah_2", "2_tah_2", "3_tah_2", "4_tah_2", "5_tah_2", "6_tah_2", "dodatkove_2"
 ]
 
-# Load your Sportka CSV file
+# Load dataset
 df = pd.read_csv("sportka.csv", delimiter=";", names=columns, skiprows=1)
 
-# Extract all winning numbers (excluding dodatkové numbers)
+# Let user define how far back in history to go
+HISTORY_DEPTH = 100  # Adjust this to analyze only the last X draws (e.g., 100 most recent)
+
+# Filter data to use only the last X draws
+df = df.iloc[:HISTORY_DEPTH] if HISTORY_DEPTH > 0 else df  # If 0, use full history
+
+# Extract all winning numbers (excluding dodatkové)
 all_numbers = df.iloc[:, 4:10].values.flatten().tolist() + df.iloc[:, 11:17].values.flatten().tolist()
 
 # Count frequency of each number
@@ -22,7 +28,7 @@ number_counts = Counter(all_numbers)
 hot_numbers = [num for num, count in number_counts.most_common(12)]  # Top 12 frequent numbers
 cold_numbers = [num for num, count in number_counts.most_common()[-12:]]  # Bottom 12 least frequent numbers
 
-# Function to generate a Sportka number set
+# Generate one fixed set of Sportka numbers
 def generate_lottery_numbers():
     selected_numbers = set()
     
@@ -32,7 +38,7 @@ def generate_lottery_numbers():
     # Pick 1-2 cold numbers
     selected_numbers.update(random.sample(cold_numbers, k=random.choice([1, 2])))
     
-    # Fill remaining numbers while ensuring a balanced mix of even/odd & high/low numbers
+    # Fill remaining numbers ensuring balance
     while len(selected_numbers) < 6:
         num = random.randint(1, 49)
         if num not in selected_numbers:
@@ -40,9 +46,16 @@ def generate_lottery_numbers():
     
     return sorted(selected_numbers)
 
-# Generate 8 Sportka "sloupečky" (sets)
-lottery_tickets = [generate_lottery_numbers() for _ in range(8)]
+# Extract all dodatkové numbers from the filtered dataset
+all_dodatkove = df["dodatkove_1"].tolist() + df["dodatkove_2"].tolist()
 
-# Display the generated numbers
-df_tickets = pd.DataFrame(lottery_tickets, columns=[f"Number {i+1}" for i in range(6)])
-print(df_tickets)
+# Find the most frequently occurring dodatkové číslo
+dodatkove_counts = Counter(all_dodatkove)
+best_dodatkove = dodatkove_counts.most_common(1)[0][0]  # Select most frequent dodatkové
+
+# Generate the single "sloupeček"
+final_numbers = generate_lottery_numbers()
+
+# Display result
+print(f"Final Sportka Numbers: {final_numbers}")
+print(f"Best Dodatkové Číslo: {best_dodatkove}")
