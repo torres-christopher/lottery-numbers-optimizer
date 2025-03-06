@@ -14,7 +14,7 @@ columns = [
 df = pd.read_csv("sportka.csv", delimiter=";", names=columns, skiprows=1)
 
 # Let user define how far back in history to go
-HISTORY_DEPTH = 100  # Adjust to limit how many past draws to analyze (0 = full history)
+HISTORY_DEPTH = 0  # Adjust to limit how many past draws to analyze (0 = full history)
 NUM_TICKETS = 8  # Choose how many tickets to generate (1 to 8)
 
 # Ensure NUM_TICKETS is within the valid range
@@ -23,8 +23,8 @@ NUM_TICKETS = max(1, min(NUM_TICKETS, 8))
 # Filter data to use only the last X draws
 df = df.iloc[:HISTORY_DEPTH] if HISTORY_DEPTH > 0 else df  # If 0, use full history
 
-# Extract all winning numbers (excluding dodatkové)
-all_numbers = df.iloc[:, 4:10].values.flatten().tolist() + df.iloc[:, 11:17].values.flatten().tolist()
+# Extract all winning numbers (excluding dodatkové) and convert to standard integers
+all_numbers = list(map(int, df.iloc[:, 4:10].values.flatten().tolist() + df.iloc[:, 11:17].values.flatten().tolist()))
 
 # Count frequency of each number
 number_counts = Counter(all_numbers)
@@ -33,11 +33,11 @@ number_counts = Counter(all_numbers)
 hot_numbers = [num for num, count in number_counts.most_common(12)]  # Top 12 frequent numbers
 cold_numbers = [num for num, count in number_counts.most_common()[-12:]]  # Bottom 12 least frequent numbers
 
-# Get the most recent draw numbers (to reuse 1-2 past winners)
-last_draw = df.iloc[0, 4:10].tolist() if not df.empty else []
+# Get the most recent draw numbers (to reuse 1-2 past winners) and convert to integers
+last_draw = list(map(int, df.iloc[0, 4:10].tolist())) if not df.empty else []
 
-# Extract all dodatkové numbers from the filtered dataset
-all_dodatkove = df["dodatkove_1"].tolist() + df["dodatkove_2"].tolist()
+# Extract all dodatkové numbers from the filtered dataset and convert to integers
+all_dodatkove = list(map(int, df["dodatkove_1"].tolist() + df["dodatkove_2"].tolist()))
 
 # Find the most frequently occurring dodatkové číslo
 dodatkove_counts = Counter(all_dodatkove)
@@ -78,7 +78,7 @@ def generate_lottery_numbers():
         selected_numbers.remove(to_remove)
         selected_numbers.add(random.choice([x for x in range(2, 50, 2) if x not in selected_numbers]))
     
-    return sorted(selected_numbers)
+    return sorted(map(int, selected_numbers))  # Ensure output is standard Python integers
 
 # Generate multiple unique tickets
 tickets = [generate_lottery_numbers() for _ in range(NUM_TICKETS)]
@@ -86,4 +86,5 @@ tickets = [generate_lottery_numbers() for _ in range(NUM_TICKETS)]
 # Display results
 print(f"Generated {NUM_TICKETS} unique tickets:")
 for i, ticket in enumerate(tickets, 1):
-    print(f"Ticket {i}: {ticket} + Dodatkové Číslo: {best_dodatkove}\n- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+    print(f"Ticket {i}: {ticket} + Dodatkové Číslo: {best_dodatkove}")
+    print("-" * 50)
