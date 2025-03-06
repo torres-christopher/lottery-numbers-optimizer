@@ -1,6 +1,6 @@
 # Sportka Number Generator
 
-This Python script generates **one set of 6 numbers** to use across **multiple Sportka tickets** while also selecting the **most suitable dodatkové číslo** based on historical winning numbers. The script allows you to:
+This Python script generates up to **8 sets of 6 numbers** to use across **multiple Sportka tickets** while also selecting the **most suitable dodatkové číslo** based on historical winning numbers. The script allows you to:
 - **Control how far back in history** the analysis goes.
 - **Choose how many tickets to generate** (from 1 to 8).
 - **Optimize number selection** using statistical patterns.
