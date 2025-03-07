@@ -14,8 +14,8 @@ columns = [
 df = pd.read_csv("sportka.csv", delimiter=";", names=columns, skiprows=1)
 
 # Let user define how far back in history to go
-HISTORY_DEPTH = 0  # Adjust to limit how many past draws to analyze (0 = full history)
-NUM_TICKETS = 8  # Choose how many tickets to generate (1 to 8)
+HISTORY_DEPTH = 5  # Adjust to limit how many past draws to analyze (0 = full history)
+NUM_TICKETS = 4  # Choose how many tickets to generate (1 to 8)
 
 # Ensure NUM_TICKETS is within the valid range
 NUM_TICKETS = max(1, min(NUM_TICKETS, 8))
@@ -46,18 +46,21 @@ best_dodatkove = dodatkove_counts.most_common(1)[0][0]  # Select most frequent d
 # Function to generate a unique Sportka number set for each ticket
 def generate_lottery_numbers():
     selected_numbers = set()
-    
-    # Pick 1-2 numbers from the last draw
-    if last_draw:
-        selected_numbers.update(random.sample(last_draw, k=random.choice([1, 2])))
-    
-    # Pick 2-3 hot numbers
-    selected_numbers.update(random.sample(hot_numbers, k=random.choice([2, 3])))
 
-    # Pick 1-2 cold numbers
-    selected_numbers.update(random.sample(cold_numbers, k=random.choice([1, 2])))
+    # Pick numbers from different groups while ensuring the total is 6
+    num_last_draw = random.choice([1, 2]) if last_draw else 0
+    num_hot = random.choice([2, 3])
+    num_cold = random.choice([1, 2])
 
-    # Fill remaining numbers ensuring balance
+    # Adjust selection to ensure exactly 6 numbers in total
+    while num_last_draw + num_hot + num_cold > 6:
+        num_hot -= 1  # Reduce hot numbers if too many
+    
+    selected_numbers.update(random.sample(last_draw, k=min(num_last_draw, len(last_draw))))
+    selected_numbers.update(random.sample(hot_numbers, k=num_hot))
+    selected_numbers.update(random.sample(cold_numbers, k=num_cold))
+
+    # Fill remaining slots, if needed
     while len(selected_numbers) < 6:
         num = random.randint(1, 49)
         if (
@@ -65,20 +68,21 @@ def generate_lottery_numbers():
             all(abs(num - x) > 1 for x in selected_numbers)  # Avoid consecutive numbers
         ):
             selected_numbers.add(num)
-    
+
     # Ensure Even/Odd balance
     even_numbers = [n for n in selected_numbers if n % 2 == 0]
     odd_numbers = [n for n in selected_numbers if n % 2 != 0]
-    if len(even_numbers) > 3:  # Too many evens, swap one for odd
+
+    if len(even_numbers) > 3:  # Too many evens, swap one for an odd
         to_remove = random.choice(even_numbers)
         selected_numbers.remove(to_remove)
         selected_numbers.add(random.choice([x for x in range(1, 50, 2) if x not in selected_numbers]))
-    elif len(odd_numbers) > 3:  # Too many odds, swap one for even
+    elif len(odd_numbers) > 3:  # Too many odds, swap one for an even
         to_remove = random.choice(odd_numbers)
         selected_numbers.remove(to_remove)
         selected_numbers.add(random.choice([x for x in range(2, 50, 2) if x not in selected_numbers]))
-    
-    return sorted(map(int, selected_numbers))  # Ensure output is standard Python integers
+
+    return sorted(map(int, selected_numbers))  # Ensure output is exactly 6 numbers
 
 # Generate multiple unique tickets
 tickets = [generate_lottery_numbers() for _ in range(NUM_TICKETS)]
